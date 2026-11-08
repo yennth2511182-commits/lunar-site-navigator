@@ -43,14 +43,29 @@ SITES = {
     'Apollo 17': (20.191, 30.772),
     "Chang'e-4 (mặt xa)": (-45.457, 177.6),
 }
-
+def sky_plot(sun, earth):
+    fig = plt.figure(figsize=(4, 4))
+    ax = fig.add_subplot(projection='polar')
+    ax.set_theta_zero_location('N')
+    ax.set_theta_direction(-1)
+    ax.set_ylim(0, 90)
+    ax.set_yticks([0, 30, 60, 90])
+    ax.set_yticklabels(['90°', '60°', '30°', '0° (chân trời)'])
+    for name, (alt, az), color in [('Mặt Trời', sun, 'orange'), ('Trái Đất', earth, 'tab:blue')]:
+        if alt > 0:
+            ax.scatter(np.radians(az), 90 - alt, s=250, color=color, label=name, zorder=3)
+    handles, _ = ax.get_legend_handles_labels()
+    if handles:
+        ax.legend(loc='lower left', bbox_to_anchor=(0.85, 0))
+    return fig
 st.title("Lunar Landing Site Navigator")
 st.caption("Góc cao Mặt Trời / Trái Đất tại điểm hạ cánh. Đường chân trời coi là phẳng (chưa có địa hình).")
 
 d = st.sidebar.date_input("Ngày bắt đầu (UTC)", date(2026, 11, 15),
                           min_value=date(1950, 1, 1), max_value=date(2049, 12, 31))
 days = st.sidebar.slider("Số ngày xem", 5, 60, 30)
-
+hour = st.sidebar.slider("Thời điểm xem (giờ kể từ ngày bắt đầu)", 0, days * 24, 0)
+t_now = ts.utc(d.year, d.month, d.day, hour)
 def site_picker(label, default):
     choice = st.sidebar.selectbox(label, list(SITES) + ['Tự nhập tọa độ'], index=default)
     if choice == 'Tự nhập tọa độ':
@@ -83,3 +98,6 @@ for col, (label, default) in zip(cols, [("Điểm A", 0), ("Điểm B", 3)]):
         ax.set_xlabel('Ngày'); ax.set_ylabel('Góc cao (độ)')
         ax.legend(); ax.grid(alpha=0.3)
         st.pyplot(fig)
+                now = sky_position(lat, lon, t_now)
+        st.write("**Bầu trời tại thời điểm đã chọn**")
+        st.pyplot(sky_plot(now['sun'], now['earth']))
