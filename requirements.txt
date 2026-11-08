@@ -3,3 +3,4 @@ skyfield
 numpy
 pandas
 matplotlib
+plotly
